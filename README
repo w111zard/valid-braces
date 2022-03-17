@@ -1,0 +1,7 @@
+$ sudo make install
+
+$ check-braces "{[()]}"
+$ True
+
+$ check-braces "((("
+$ False
