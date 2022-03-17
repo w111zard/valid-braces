@@ -1,7 +1,9 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <stdbool.h>
 
 enum {
+  STD_ERR = 2,
   STACK_SIZE = 1000
 };
 
@@ -11,27 +13,23 @@ size_t stack_free_position = 0;
 void stack_push (char item) {
   if (stack_free_position < STACK_SIZE)
     stack[stack_free_position++] = item;
-  else
-    printf("Error: stack is full!!!\n");
+  else {
+    dprintf(STD_ERR, "Error: stack is full!\n");
+    exit(1);
+  }
 }
 
 char stack_pop (void) {
   if (stack_free_position > 0)
     return stack[--stack_free_position];
   else
-    printf("Error: stack is empty!!!\n");
-}
-
-void stack_print() {
-  printf("### STACK ###\n");
-  printf("pos = %ld\n", stack_free_position);
-  for (int i = 0; i < stack_free_position; ++i)
-    printf("#%3d = %c\n", i, stack[i]);
-  printf("\n");
+    return 0;
 }
 
 bool valid_braces (const char *braces) {
-  for ( ; *(braces + 1); ++braces) {
+  stack_free_position = 0; /* clear stack */
+
+  for ( ; *braces; ++braces) {
     switch (*braces) {
     case '(':
     case '{':
@@ -50,21 +48,25 @@ bool valid_braces (const char *braces) {
       break;
 
     case ']':
-      if (stack_pop() != ']')
+      if (stack_pop() != '[')
         return false;
       break;
+
+    default:
+      dprintf(STD_ERR, "Error: unknown character '%c'!\n", *braces);
+      exit(1);
     }
   }
 
-  if (stack_free_position == 1)
-    return true;
-  else
-    return false;
+  return (stack_free_position == 0) ? (true) : (false);
 }
 
-int main() {
-  char *braces = "(){}";
-  bool result = valid_braces(braces);
-  printf("%d\n", result);
+int main(int argc, char **argv) {
+  if (argc != 2) {
+    dprintf(STD_ERR, "Error: wrong number of the argument! Expected 2 but %d was given!\n", argc);
+    exit(1);
+  }
+
+  printf("%s\n", valid_braces(argv[1]) ? "True" : "False");
   return 0;
 }
